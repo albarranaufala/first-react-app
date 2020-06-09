@@ -1,7 +1,31 @@
 'use strict'
 
 class ProductForm extends React.Component {
-  //TODO
+  constructor(props) {
+    super(props)
+    this.submit = this.submit.bind(this)
+    this.state = {}
+  }
+
+  submit = function(e){
+    e.preventDefault()
+    this.props.handleSubmit({
+      name: this.refs.name.value,
+      price: this.refs.price.value
+    })
+    this.refs.name.value = ''
+    this.refs.price.value = ''
+  }
+
+  render() {
+    return (
+      <form onSubmit={this.submit}>
+        <input placeholder="Name" ref="name"/> - <input placeholder="price" ref="price"/>
+        <button type="submit">Add Product</button>
+        <hr></hr>
+      </form>
+    )
+  }
 }
 
 class Product extends React.Component {
@@ -57,7 +81,22 @@ class ProductList extends React.Component {
     super(props);
     this.add = this.add.bind(this)
     this.reduce = this.reduce.bind(this)
+    this.submit = this.submit.bind(this)
     this.state = { 
+      productList : [
+        {
+          name: 'Samsung',
+          price: 120
+        },
+        {
+          name: 'Apple',
+          price: 100
+        },
+        {
+          name: 'Xiaomi',
+          price: 20
+        },
+      ],
       total : 0 
     }
   }
@@ -68,13 +107,19 @@ class ProductList extends React.Component {
   reduce = function(price){
     this.setState({total: this.state.total ? this.state.total - price : this.state.total})
   }
+  submit = function(product){
+    this.setState({productList: this.state.productList.concat(product)})
+  }
 
   render() {
+    let component = this
+    let products = this.state.productList.map(function(product, index) {
+      return <Product key={index} name={product.name} price={product.price} handleAdd={component.add} handleReduce={component.reduce}/>
+    })
     return (
       <div>
-        <Product name='Samsung' price={120} handleAdd={this.add} handleReduce={this.reduce}/>
-        <Product name='Apple' price={100} handleAdd={this.add} handleReduce={this.reduce}/>
-        <Product name='Xiaomi' price={20} handleAdd={this.add} handleReduce={this.reduce}/>
+        <ProductForm handleSubmit={this.submit}/>
+        {products}
         <Total total={this.state.total}/>
       </div>
     )
