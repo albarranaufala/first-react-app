@@ -9,12 +9,15 @@ class ProductForm extends React.Component {
 
   submit = function(e){
     e.preventDefault()
-    this.props.handleSubmit({
-      name: this.refs.name.value,
-      price: this.refs.price.value
-    })
-    this.refs.name.value = ''
-    this.refs.price.value = ''
+    if(this.refs.name.value && this.refs.price.value){
+      this.props.handleSubmit({
+        name: this.refs.name.value,
+        price: this.refs.price.value,
+        qty: 0
+      })
+      this.refs.name.value = ''
+      this.refs.price.value = ''
+    }
   }
 
   render() {
@@ -34,33 +37,29 @@ class Product extends React.Component {
     this.add = this.add.bind(this)
     this.reduce = this.reduce.bind(this)
     this.remove = this.remove.bind(this)
-    this.state = { qty:0 }
+    this.state = {  }
   }
 
   add = function(){
-    this.setState({qty: this.state.qty + 1})
-    this.props.handleAdd(this.props.price)
+    this.props.handleAdd(this.props.index)
   }
 
   reduce = function(){
-    this.setState({qty: this.state.qty ? this.state.qty - 1 : this.state.qty})
-    if(this.state.qty){
-      this.props.handleReduce(this.props.price)
-    }
+    this.props.handleReduce(this.props.index)
   }
 
   remove = function(){
-    this.props.handleRemove(this.props.index, this.state.qty)
+    this.props.handleRemove(this.props.index)
   }
 
   render() {
     return (
       <div>
-        <p>{this.props.name} - ${this.props.price}</p>
+        <p>{this.props.product.name} - ${this.props.product.price}</p>
         <button onClick={this.add}>+</button>
         <button onClick={this.reduce}>-</button>
         <button onClick={this.remove}>remove</button>
-        <h3>Qty : {this.state.qty}</h3>
+        <h3>Qty : {this.props.product.qty}</h3>
         <hr></hr>
       </div>
     )
@@ -93,47 +92,77 @@ class ProductList extends React.Component {
       productList : [
         {
           name: 'Samsung',
-          price: 120
+          price: 120,
+          qty: 0
         },
         {
           name: 'Apple',
-          price: 100
+          price: 100,
+          qty: 0
         },
         {
           name: 'Xiaomi',
-          price: 20
+          price: 20,
+          qty: 0
         },
       ],
-      total : 0 
     }
   }
 
-  add = function(price){
-    this.setState({total: this.state.total + price})
+  total = function(productList){
+    let total = 0
+    productList.forEach((product, i) => {
+      total += product.qty * product.price
+    })
+    return total
   }
-  reduce = function(price){
-    this.setState({total: this.state.total ? this.state.total - price : this.state.total})
+
+  add = function(index){
+    this.setState({
+      productList: this.state.productList.map((product, i) => {
+        if(i === index){
+          product.qty += 1
+          return product
+        }
+        return product
+      })
+    })
   }
+
+  reduce = function(index){
+    this.setState({
+      productList: this.state.productList.map((product, i) => {
+        if(i === index){
+          product.qty = product.qty ? product.qty - 1 : product.qty 
+          return product
+        }
+        return product
+      })
+    })
+  }
+
   submit = function(product){
-    this.setState({productList: this.state.productList.concat(product)})
+    this.setState({
+      productList: this.state.productList.concat(product)
+    })
   }
-  remove = function(index,qty){
-    // console.log(this.state.productList.splice(index,1))
-    // this.setState({productList: this.state.productList.splice(index,1)})
-    this.setState({productList: this.state.productList.filter((item, j) => index !== j)})
-    this.setState({total: this.state.total - this.state.productList[index].price * qty})
+
+  remove = function(index){
+    this.setState({
+      productList: this.state.productList.filter((item, j) => index !== j)
+    })
   }
 
   render() {
     let component = this
-    let products = this.state.productList.map(function(product, index) {
-      return <Product key={index} index={index} name={product.name} price={product.price} handleAdd={component.add} handleReduce={component.reduce} handleRemove={component.remove}/>
+    let products = this.state.productList.map((product, index) => {
+      return <Product key={index} index={index} product={product} handleAdd={component.add} handleReduce={component.reduce} handleRemove={component.remove}/>
     })
     return (
       <div>
         <ProductForm handleSubmit={this.submit}/>
         {products}
-        <Total total={this.state.total}/>
+        <Total total={this.total(this.state.productList)}/>
       </div>
     )
   }
