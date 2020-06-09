@@ -33,6 +33,7 @@ class Product extends React.Component {
     super(props)
     this.add = this.add.bind(this)
     this.reduce = this.reduce.bind(this)
+    this.remove = this.remove.bind(this)
     this.state = { qty:0 }
   }
 
@@ -48,12 +49,17 @@ class Product extends React.Component {
     }
   }
 
+  remove = function(){
+    this.props.handleRemove(this.props.index, this.state.qty)
+  }
+
   render() {
     return (
       <div>
         <p>{this.props.name} - ${this.props.price}</p>
         <button onClick={this.add}>+</button>
         <button onClick={this.reduce}>-</button>
+        <button onClick={this.remove}>remove</button>
         <h3>Qty : {this.state.qty}</h3>
         <hr></hr>
       </div>
@@ -82,6 +88,7 @@ class ProductList extends React.Component {
     this.add = this.add.bind(this)
     this.reduce = this.reduce.bind(this)
     this.submit = this.submit.bind(this)
+    this.remove = this.remove.bind(this)
     this.state = { 
       productList : [
         {
@@ -110,11 +117,17 @@ class ProductList extends React.Component {
   submit = function(product){
     this.setState({productList: this.state.productList.concat(product)})
   }
+  remove = function(index,qty){
+    // console.log(this.state.productList.splice(index,1))
+    // this.setState({productList: this.state.productList.splice(index,1)})
+    this.setState({productList: this.state.productList.filter((item, j) => index !== j)})
+    this.setState({total: this.state.total - this.state.productList[index].price * qty})
+  }
 
   render() {
     let component = this
     let products = this.state.productList.map(function(product, index) {
-      return <Product key={index} name={product.name} price={product.price} handleAdd={component.add} handleReduce={component.reduce}/>
+      return <Product key={index} index={index} name={product.name} price={product.price} handleAdd={component.add} handleReduce={component.reduce} handleRemove={component.remove}/>
     })
     return (
       <div>
